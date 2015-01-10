@@ -1,4 +1,4 @@
-// import box2D.dynamics.controllers.B2BuoyancyController;
+import box2D.dynamics.controllers.B2BuoyancyController;
 import box2D.dynamics.controllers.B2Controller;
 /*
 * Copyright (c) 2006-2007 Erin Catto http://www.gphysics.com
@@ -39,14 +39,14 @@ import box2D.common.math.*;
 		
 		public function new(){
 			super();
-// 			var bc:B2BuoyancyController = new B2BuoyancyController();
-// 			m_controller = bc;
+			var bc:B2BuoyancyController = new B2BuoyancyController();
+			m_controller = bc;
 			
-// 			bc.normal.set(0,-1);
-// 			bc.offset = -200 / m_physScale;
-// 			bc.density = 2.0;
-// 			bc.linearDrag = 5;
-// 			bc.angularDrag = 2;
+			bc.normal.set(0,-1);
+			bc.offset = -200 / m_physScale;
+			bc.density = 2.0;
+			bc.linearDrag = 5;
+			bc.angularDrag = 2;
 			
 			var ground:B2Body = m_world.getGroundBody();
 			var i:Int;
@@ -190,11 +190,11 @@ import box2D.common.math.*;
 			body.createFixture(fd);
 			m_bodies.push(body);
 
-// 			for(body in m_bodies){
-// 				m_controller.addBody(body);
-// 			}
+			for(body in m_bodies){
+				m_controller.addBody(body);
+			}
 			
-// 			m_world.addController(m_controller);
+			m_world.addController(m_controller);
 			
 			// Set Text field
 // 			Main.m_aboutText.text = "Buoyancy";
@@ -226,3 +226,4 @@ import box2D.common.math.*;
 		}
 	}
 	
+

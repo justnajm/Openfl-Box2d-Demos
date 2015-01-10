@@ -909,10 +909,22 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 		Global.game_width = 640;
 		Global.game_height = 410;
 		Global.world_sprite = this;
-		Global.caption.set_y(30);
-		Global.caption.set_x(10);
+		Global.caption.set_y(10);
+		Global.caption.set_x(200);
 		Global.caption.set_width(300);
 		this.addChild(Global.caption);
+		var next_test_caption = new openfl_text_TextField();
+		next_test_caption.set_y(50);
+		next_test_caption.set_x(10);
+		next_test_caption.set_width(300);
+		next_test_caption.set_text("PRESS SPACEBAR FOR NEXT TEST");
+		this.addChild(next_test_caption);
+		var del_object_caption = new openfl_text_TextField();
+		del_object_caption.set_y(70);
+		del_object_caption.set_x(10);
+		del_object_caption.set_width(300);
+		del_object_caption.set_text("CLICK & PRESS 'D' TO DELETE OBJECTS");
+		this.addChild(del_object_caption);
 		this.addChild(new openfl_display_FPS());
 		var input = new Input(this);
 		this.test_list.push(new TestBridge());
@@ -2635,6 +2647,13 @@ TestBridge.prototype = $extend(Test.prototype,{
 var TestBuoyancy = function() {
 	this.m_bodies = new Array();
 	Test.call(this);
+	var bc = new box2D_dynamics_controllers_B2BuoyancyController();
+	this.m_controller = bc;
+	bc.normal.set(0,-1);
+	bc.offset = -200 / this.m_physScale;
+	bc.density = 2.0;
+	bc.linearDrag = 5;
+	bc.angularDrag = 2;
 	var ground = this.m_world.getGroundBody();
 	var i;
 	var anchor = new box2D_common_math_B2Vec2();
@@ -2737,6 +2756,14 @@ var TestBuoyancy = function() {
 	boxDef.setAsBox(2 / this.m_physScale,30 / this.m_physScale);
 	body.createFixture(fd);
 	this.m_bodies.push(body);
+	var _g3 = 0;
+	var _g11 = this.m_bodies;
+	while(_g3 < _g11.length) {
+		var body1 = _g11[_g3];
+		++_g3;
+		this.m_controller.addBody(body1);
+	}
+	this.m_world.addController(this.m_controller);
 };
 $hxClasses["TestBuoyancy"] = TestBuoyancy;
 TestBuoyancy.__name__ = ["TestBuoyancy"];
@@ -9942,6 +9969,81 @@ box2D_dynamics_controllers_B2Controller.prototype = {
 	}
 	,__class__: box2D_dynamics_controllers_B2Controller
 };
+var box2D_dynamics_controllers_B2BuoyancyController = function() {
+	this.normal = new box2D_common_math_B2Vec2(0,-1);
+	this.offset = 0;
+	this.density = 0;
+	this.velocity = new box2D_common_math_B2Vec2(0,0);
+	this.linearDrag = 2;
+	this.angularDrag = 1;
+	this.useDensity = false;
+	this.useWorldGravity = true;
+	this.gravity = null;
+};
+$hxClasses["box2D.dynamics.controllers.B2BuoyancyController"] = box2D_dynamics_controllers_B2BuoyancyController;
+box2D_dynamics_controllers_B2BuoyancyController.__name__ = ["box2D","dynamics","controllers","B2BuoyancyController"];
+box2D_dynamics_controllers_B2BuoyancyController.__super__ = box2D_dynamics_controllers_B2Controller;
+box2D_dynamics_controllers_B2BuoyancyController.prototype = $extend(box2D_dynamics_controllers_B2Controller.prototype,{
+	step: function(step) {
+		if(this.m_bodyList == null) return;
+		if(this.useWorldGravity) this.gravity = this.getWorld().getGravity().copy();
+		var i = this.m_bodyList;
+		while(i != null) {
+			var body = i.body;
+			if(body.isAwake() == false) {
+				i = i.nextBody;
+				continue;
+			}
+			var areac = new box2D_common_math_B2Vec2();
+			var massc = new box2D_common_math_B2Vec2();
+			var area = 0.0;
+			var mass = 0.0;
+			var fixture = body.getFixtureList();
+			while(fixture != null) {
+				var sc = new box2D_common_math_B2Vec2();
+				var sarea = fixture.getShape().computeSubmergedArea(this.normal,this.offset,body.getTransform(),sc);
+				area += sarea;
+				areac.x += sarea * sc.x;
+				areac.y += sarea * sc.y;
+				var shapeDensity;
+				if(this.useDensity) shapeDensity = 1; else shapeDensity = 1;
+				mass += sarea * shapeDensity;
+				massc.x += sarea * sc.x * shapeDensity;
+				massc.y += sarea * sc.y * shapeDensity;
+				fixture = fixture.getNext();
+			}
+			areac.x /= area;
+			areac.y /= area;
+			massc.x /= mass;
+			massc.y /= mass;
+			if(area < Number.MIN_VALUE) {
+				i = i.nextBody;
+				continue;
+			}
+			var buoyancyForce = this.gravity.getNegative();
+			buoyancyForce.multiply(this.density * area);
+			body.applyForce(buoyancyForce,massc);
+			var dragForce = body.getLinearVelocityFromWorldPoint(areac);
+			dragForce.subtract(this.velocity);
+			dragForce.multiply(-this.linearDrag * area);
+			body.applyForce(dragForce,areac);
+			body.applyTorque(-body.getInertia() / body.getMass() * area * body.getAngularVelocity() * this.angularDrag);
+			i = i.nextBody;
+		}
+	}
+	,draw: function(debugDraw) {
+		var r = 1000;
+		var p1 = new box2D_common_math_B2Vec2();
+		var p2 = new box2D_common_math_B2Vec2();
+		p1.x = this.normal.x * this.offset + this.normal.y * r;
+		p1.y = this.normal.y * this.offset - this.normal.x * r;
+		p2.x = this.normal.x * this.offset - this.normal.y * r;
+		p2.y = this.normal.y * this.offset + this.normal.x * r;
+		var color = new box2D_common_B2Color(0,0,1);
+		debugDraw.drawSegment(p1,p2,color);
+	}
+	,__class__: box2D_dynamics_controllers_B2BuoyancyController
+});
 var box2D_dynamics_controllers_B2ControllerEdge = function() {
 };
 $hxClasses["box2D.dynamics.controllers.B2ControllerEdge"] = box2D_dynamics_controllers_B2ControllerEdge;
