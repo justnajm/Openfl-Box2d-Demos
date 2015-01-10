@@ -1,0 +1,26 @@
+{
+     "type" : 1
+    ,"target" : null
+    ,"name" : "/box2d openfl demo"
+    ,"main" : null
+    ,"projectPackage" : null
+    ,"company" : null
+    ,"license" : null
+    ,"url" : null
+    ,"targetData" : [
+
+    ]
+    ,"files" : [
+
+    ]
+    ,"activeFile" : null
+    ,"openFLTarget" : "flash"
+    ,"openFLBuildMode" : "Debug"
+    ,"runActionType" : 2
+    ,"runActionText" : "haxelib run lime run \"%path%\" flash"
+    ,"buildActionCommand" : "haxelib run lime build \"%path%\" flash --connect 5000"
+    ,"hiddenItems" : [
+
+    ]
+    ,"showHiddenItems" : false
+}

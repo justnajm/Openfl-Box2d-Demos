@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<meta title="Box2D Demos" package="us.najam.box2ddemos" version="1.0.0" company="OpenFL Technologies" />
+	<app file="Box2D Demos" main="Main" path="Export" />
+	
+	<window width="640" height="360" unless="mobile"/>
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="box2d" />
+	
+	<assets path="Assets" rename="assets" exclude="*.svg" />
+	<icon path="Assets/openfl.svg" />
+	
+</project>
